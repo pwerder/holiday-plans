@@ -24,12 +24,20 @@ class HolidayController extends Controller
     public function store(Request $request)
     {
         try {
-            Holiday::create($request->all());
+            $validated = $request->validate([
+                'title' => 'required',
+                'description' => 'required',
+                'date' => 'required|date',
+            ]);
+            if ($validated) {
+                Holiday::create($request->all());
+                return response('Created', 201)->header('Content-Type', 'application/json');
+            } else {
+                throw new Exception('The title, description, location and date fields are mandatory.');
+            }
         } catch (Exception $e) {
-            return  $e->getMessage();
+            $e->getMessage();
         }
-
-        return response('Created ', 201)->header('Content-Type', 'application/json');
     }
 
     /**
@@ -37,10 +45,17 @@ class HolidayController extends Controller
      */
     public function show(int $id)
     {
-        $holiday = Holiday::find($id);
-
-        return response($holiday, 200)
+        try {
+            $holiday = Holiday::find($id);
+            if (!$holiday) {
+                throw new Exception('Data not found');
+            }
+            return response($holiday, 200)
+                ->header('Content-Type', 'application/json');
+        } catch (Exception $e) {
+            return response($e->getMessage(), 404)
             ->header('Content-Type', 'application/json');
+        }
     }
 
     /**
@@ -48,10 +63,27 @@ class HolidayController extends Controller
      */
     public function update(Request $request, int $id)
     {
-        $holiday = Holiday::find($id);
-        $holiday->update($request->all());
-        return response($holiday, 200)
-            ->header('Content-Type', 'application/json');;
+        try {
+            $validated = $request->validate([
+                'title' => 'required',
+                'description' => 'required',
+                'date' => 'required|date',
+            ]);
+            $holiday = Holiday::find($id);
+            if (!$validated) {
+                throw new Exception('The title, description, location and date fields are mandatory.');
+            }
+            if (!$holiday) {
+                throw new Exception('Data not found');
+            }
+            $holiday->update($request->all());
+            return response($holiday, 200)
+                ->header('Content-Type', 'application/json');;
+        } catch (Exception $e) {
+            return response($e->getMessage(), 404)
+            ->header('Content-Type', 'application/json');
+        }
+
     }
 
     /**
@@ -59,9 +91,17 @@ class HolidayController extends Controller
      */
     public function destroy(int $id)
     {
-        $holiday = Holiday::find($id);
-        $holiday->delete();
-        return response('Deleted', 202)
-            ->headers('Content-Type', 'application/json');
+        try {
+            $holiday = Holiday::find($id);
+            if (!$holiday) {
+                throw new Exception('Data not found');
+            }
+            $holiday->delete();
+            return response('Deleted', 202)
+                ->headers('Content-Type', 'application/json');
+        } catch (Exception $e) {
+            return response($e->getMessage(), 404)
+            ->header('Content-Type', 'application/json');
+        }
     }
 }
