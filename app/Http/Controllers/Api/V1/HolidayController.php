@@ -98,7 +98,7 @@ class HolidayController extends Controller
             }
             $holiday->delete();
             return response('Deleted', 202)
-                ->headers('Content-Type', 'application/json');
+                ->header('Content-Type', 'application/json');
         } catch (Exception $e) {
             return response($e->getMessage(), 404)
             ->header('Content-Type', 'application/json');
